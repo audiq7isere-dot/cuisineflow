@@ -1,4 +1,5 @@
 import './globals.css';
 import './quote-edit-overrides.css';
 export const metadata={title:'CuisineFlow',description:'CRM Cuisine Pour Tous'};
-export default function RootLayout({children}){return <html lang="fr"><body>{children}</body></html>}
+const quoteRedirect=`(()=>{if(typeof window==='undefined'||window.__cfQuoteFetch)return;window.__cfQuoteFetch=true;const original=window.fetch.bind(window);window.fetch=async function(input,init){const response=await original(input,init);try{const url=typeof input==='string'?input:(input&&input.url)||'';const method=(init&&init.method)||(input&&input.method)||'GET';if(location.pathname==='/'&&/\/rest\/v1\/quotes(?:\?|$)/.test(url)&&String(method).toUpperCase()==='POST'&&response.ok){const copy=response.clone();const data=await copy.json();const row=Array.isArray(data)?data[0]:data;if(row&&row.quote_number){setTimeout(()=>location.assign('/devis-edit?number='+encodeURIComponent(row.quote_number)),0)}}}catch(e){}return response}})();`;
+export default function RootLayout({children}){return <html lang="fr"><head><script dangerouslySetInnerHTML={{__html:quoteRedirect}}/></head><body>{children}</body></html>}
