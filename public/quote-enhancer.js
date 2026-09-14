@@ -1,14 +1,14 @@
-(()=>{function enhance(){const tables=[...document.querySelectorAll('table')];for(const table of tables){const heads=[...table.querySelectorAll('thead th')].map(x=>x.textContent.trim());if(!heads.includes('N°')||!heads.includes('Client')||!heads.includes('Montant'))continue;for(const row of table.querySelectorAll('tbody tr')){const cell=row.querySelector('td');if(!cell||cell.querySelector('a[data-cf-edit]'))continue;const n=cell.textContent.trim();if(!/^DEV-/.test(n))continue;const a=document.createElement('a');a.dataset.cfEdit='1';a.href='/devis-edit?number='+encodeURIComponent(n);a.textContent=n;a.title='Modifier le devis';a.style.fontWeight='800';a.style.textDecoration='underline';a.style.textUnderlineOffset='3px';cell.textContent='';cell.appendChild(a)}}
+(()=>{let beforeSave=null,redirecting=false;const quoteNumbers=()=>new Set([...document.querySelectorAll('table tbody tr td:first-child')].map(x=>x.textContent.trim()).filter(x=>/^DEV-/.test(x)));
+function enhance(){const tables=[...document.querySelectorAll('table')];for(const table of tables){const heads=[...table.querySelectorAll('thead th')].map(x=>x.textContent.trim());if(!heads.includes('N°')||!heads.includes('Client')||!heads.includes('Montant'))continue;for(const row of table.querySelectorAll('tbody tr')){const cell=row.querySelector('td');if(!cell||cell.querySelector('a[data-cf-edit]'))continue;const n=cell.textContent.trim();if(!/^DEV-/.test(n))continue;const a=document.createElement('a');a.dataset.cfEdit='1';a.href='/devis-edit?number='+encodeURIComponent(n);a.textContent=n;a.title='Modifier le devis';a.style.fontWeight='800';a.style.textDecoration='underline';a.style.textUnderlineOffset='3px';cell.textContent='';cell.appendChild(a)}}
+if(location.pathname==='/'){
+ const save=[...document.querySelectorAll('button')].find(b=>/^Enregistrer$/.test(b.textContent.trim()));
+ if(save&&!save.dataset.cfWatch){save.dataset.cfWatch='1';save.addEventListener('click',()=>{beforeSave=quoteNumbers()})}
+ if(beforeSave&&!redirecting){const notice=[...document.querySelectorAll('.notice')].find(x=>/Devis 3CAD intégré avec succès/i.test(x.textContent));if(notice){const now=quoteNumbers();const created=[...now].find(n=>!beforeSave.has(n));if(created){redirecting=true;location.href='/devis-edit?number='+encodeURIComponent(created);return}}}
+}
 if(location.pathname==='/devis-edit'){
  const number=new URLSearchParams(location.search).get('number')||'';
  const actions=document.querySelector('.actions');
  if(actions&&!actions.querySelector('[data-cf-print]')){const b=document.createElement('button');b.dataset.cfPrint='1';b.className='btn';b.textContent='🖨️ Imprimer le devis';b.onclick=()=>{location.href='/devis-print?number='+encodeURIComponent(number)};actions.insertBefore(b,actions.lastElementChild)}
- const cards=[...document.querySelectorAll('section.card')];const products=cards.find(x=>x.textContent.includes('Prestations et produits'));if(products){
-   const buttons=[...products.querySelectorAll('.addbtn')];
-   if(buttons.length){const add=buttons[0];add.textContent='＋ Ajouter une ligne';for(const extra of buttons.slice(1)){extra.style.display='none'}
-     let wrap=products.querySelector('[data-cf-add-wrap]');if(!wrap){wrap=document.createElement('div');wrap.dataset.cfAddWrap='1';wrap.style.cssText='display:flex;justify-content:flex-end;margin-top:18px;padding-top:14px;border-top:1px solid #e2e8f0';products.appendChild(wrap)}
-     if(add.parentElement!==wrap)wrap.appendChild(add);add.style.position='static';add.style.inset='auto';
-   }
- }
+ const cards=[...document.querySelectorAll('section.card')];const products=cards.find(x=>x.textContent.includes('Prestations et produits'));if(products){const buttons=[...products.querySelectorAll('.addbtn')];if(buttons.length){const add=buttons[0];add.textContent='＋ Ajouter une ligne';for(const extra of buttons.slice(1))extra.style.display='none';let wrap=products.querySelector('[data-cf-add-wrap]');if(!wrap){wrap=document.createElement('div');wrap.dataset.cfAddWrap='1';wrap.style.cssText='display:flex;justify-content:flex-end;margin-top:18px;padding-top:14px;border-top:1px solid #e2e8f0';products.appendChild(wrap)}if(add.parentElement!==wrap)wrap.appendChild(add);add.style.position='static';add.style.inset='auto'}}
 }}
-new MutationObserver(enhance).observe(document.documentElement,{childList:true,subtree:true});addEventListener('load',enhance);setTimeout(enhance,500)})();
+new MutationObserver(enhance).observe(document.documentElement,{childList:true,subtree:true,characterData:true});addEventListener('load',enhance);setTimeout(enhance,500)})();
