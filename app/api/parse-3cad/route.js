@@ -1,4 +1,4 @@
-import pdf from 'pdf-parse';
+import * as pdfParseModule from 'pdf-parse';
 
 export const runtime = 'nodejs';
 
@@ -12,7 +12,9 @@ export async function POST(request) {
     if (!file || typeof file.arrayBuffer !== 'function') {
       return Response.json({ error: 'PDF 3CAD manquant.' }, { status: 400 });
     }
+
     const buffer = Buffer.from(await file.arrayBuffer());
+    const pdf = pdfParseModule.default || pdfParseModule;
     const parsed = await pdf(buffer);
     const text = (parsed.text || '').replace(/\r/g, '');
 
