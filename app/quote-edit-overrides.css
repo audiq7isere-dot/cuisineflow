@@ -1,0 +1,1 @@
+.qe .card:has(.addbtn){position:relative;padding-bottom:92px}.qe .card:has(.addbtn)>.top .addbtn{position:absolute;right:24px;bottom:24px;top:auto}.qe .card:has(.addbtn)>.top{margin-bottom:22px}@media(max-width:900px){.qe .card:has(.addbtn){padding-bottom:88px}.qe .card:has(.addbtn)>.top .addbtn{right:15px;bottom:18px}}
