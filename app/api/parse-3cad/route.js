@@ -1,6 +1,5 @@
-import * as pdfParseModule from 'pdf-parse';
-
 export const runtime = 'nodejs';
+export const dynamic = 'force-dynamic';
 
 const clean = v => (v || '').replace(/\s+/g, ' ').trim();
 const money = v => clean(v).replace(/\s/g, '').replace(',', '.');
@@ -13,8 +12,10 @@ export async function POST(request) {
       return Response.json({ error: 'PDF 3CAD manquant.' }, { status: 400 });
     }
 
+    // Import CommonJS uniquement à l'exécution : évite l'analyse de pdf-parse pendant le build Vercel.
+    const mod = await import('pdf-parse/lib/pdf-parse.js');
+    const pdf = mod.default || mod;
     const buffer = Buffer.from(await file.arrayBuffer());
-    const pdf = pdfParseModule.default || pdfParseModule;
     const parsed = await pdf(buffer);
     const text = (parsed.text || '').replace(/\r/g, '');
 
@@ -29,8 +30,6 @@ export async function POST(request) {
     const address = identityLines[1] || '';
     const locality = identityLines[2] || '';
     const localityMatch = locality.match(/\b(\d{5})\s+(.+?)(?:\s*\([^)]*\))?$/);
-    const postalCode = localityMatch?.[1] || '';
-    const city = clean(localityMatch?.[2] || '');
 
     const totalTtc = text.match(/TOTAL\s+TVA\s+INCLUE\s*€?\.?\s*([\d\s.,]+)/i)?.[1] || '';
     const discount = text.match(/REMISE\s+GENERALE\s+([\d.,]+)\s*%/i)?.[1] || '';
@@ -40,14 +39,14 @@ export async function POST(request) {
     return Response.json({
       client_name: name,
       client_address: address,
-      client_postal_code: postalCode,
-      client_city: city,
+      client_postal_code: localityMatch?.[1] || '',
+      client_city: clean(localityMatch?.[2] || ''),
       client_phone: phone,
       client_email: email,
       total: totalTtc ? money(totalTtc) : '',
       discount: discount ? money(discount) : '0',
       client_number: clientNumber,
-      quote_date: quoteDate,
+      quote_date: quoteDate
     });
   } catch (error) {
     console.error('3CAD parse error', error);
