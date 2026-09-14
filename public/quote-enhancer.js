@@ -3,6 +3,12 @@ if(location.pathname==='/devis-edit'){
  const number=new URLSearchParams(location.search).get('number')||'';
  const actions=document.querySelector('.actions');
  if(actions&&!actions.querySelector('[data-cf-print]')){const b=document.createElement('button');b.dataset.cfPrint='1';b.className='btn';b.textContent='🖨️ Imprimer le devis';b.onclick=()=>{location.href='/devis-print?number='+encodeURIComponent(number)};actions.insertBefore(b,actions.lastElementChild)}
- const cards=[...document.querySelectorAll('section.card')];const products=cards.find(x=>x.textContent.includes('Prestations et produits'));if(products){const add=products.querySelector('.addbtn');if(add&&!add.dataset.cfBottom){add.dataset.cfBottom='1';const wrap=document.createElement('div');wrap.style.cssText='display:flex;justify-content:flex-end;margin-top:18px;padding-top:14px;border-top:1px solid #e2e8f0';add.parentNode?.removeChild(add);wrap.appendChild(add);products.appendChild(wrap)}}
+ const cards=[...document.querySelectorAll('section.card')];const products=cards.find(x=>x.textContent.includes('Prestations et produits'));if(products){
+   const buttons=[...products.querySelectorAll('.addbtn')];
+   if(buttons.length){const add=buttons[0];add.textContent='＋ Ajouter une ligne';for(const extra of buttons.slice(1)){extra.style.display='none'}
+     let wrap=products.querySelector('[data-cf-add-wrap]');if(!wrap){wrap=document.createElement('div');wrap.dataset.cfAddWrap='1';wrap.style.cssText='display:flex;justify-content:flex-end;margin-top:18px;padding-top:14px;border-top:1px solid #e2e8f0';products.appendChild(wrap)}
+     if(add.parentElement!==wrap)wrap.appendChild(add);add.style.position='static';add.style.inset='auto';
+   }
+ }
 }}
 new MutationObserver(enhance).observe(document.documentElement,{childList:true,subtree:true});addEventListener('load',enhance);setTimeout(enhance,500)})();
