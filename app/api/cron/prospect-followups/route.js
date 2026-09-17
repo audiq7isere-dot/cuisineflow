@@ -1,0 +1,30 @@
+import nodemailer from 'nodemailer';
+import {createClient} from '@supabase/supabase-js';
+
+const URL='https://ssukleiuwjqmfruagmwk.supabase.co';
+const ORG='573a3535-2fe0-428d-9335-3b61a1ae50d8';
+const DAY=86400000;
+const STOP=['interested','intéressé','interesse','refused','refus','do_not_contact','ne plus contacter','converted','client'];
+
+const body=(name,followup=false)=>`Bonjour${name?' '+name:''},\n\n${followup?'Je me permets de revenir vers vous concernant mon précédent message.':'Cuisine Pour Tous à Chambéry développe son réseau de partenaires autour de la cuisine équipée italienne au meilleur rapport qualité/prix.'}\n\n${followup?'Nous serions ravis d’échanger avec vous si une collaboration autour des projets cuisine de vos clients peut vous intéresser.':'Nous accompagnons vos clients de l’étude jusqu’à la réalisation complète de leur cuisine, avec un service clé en main. Nous souhaitons aujourd’hui collaborer avec des professionnels locaux pouvant être amenés à rencontrer des clients ayant un projet de cuisine. Cette collaboration vous permet de proposer un service supplémentaire à vos clients, sans avoir à gérer le projet cuisine.'}\n\n${followup?'':'Vous trouverez en pièce jointe notre plaquette de présentation afin de découvrir plus en détail notre activité et nos services.\n\n'}Si ce partenariat peut vous intéresser, je serais ravi d’échanger quelques minutes avec vous.\n\nBien cordialement,\nCuisine Pour Tous – Chambéry\n2574 avenue des Landiers\n73000 Chambéry\nTél. : 06 51 43 77 88\nEmail : contact@cuisinepourtouschambery.fr\n\nSi vous ne souhaitez plus recevoir de message de notre part, répondez simplement « STOP ». `;
+
+export async function GET(request){try{
+ const secret=process.env.CRON_SECRET;if(secret&&request.headers.get('authorization')!==`Bearer ${secret}`)return Response.json({error:'Unauthorized'},{status:401});
+ const sb=createClient(URL,process.env.SUPABASE_SERVICE_ROLE_KEY||process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY||'sb_publishable_pZrsR-vEyCNYXZdk-qSVbQ_EDD0KwyJ');
+ const {data:prospects,error}=await sb.from('prospects').select('*').eq('organization_id',ORG);if(error)throw error;
+ const {data:inbound}=await sb.from('inbound_emails').select('from_address,received_at,text_body,subject').eq('organization_id',ORG);
+ const tr=nodemailer.createTransport({host:process.env.SMTP_HOST||'mail.cuisinepourtouschambery.fr',port:Number(process.env.SMTP_PORT||465),secure:true,auth:{user:process.env.SMTP_USER||'contact@cuisinepourtouschambery.fr',pass:process.env.SMTP_PASSWORD}});
+ let sent=0,followups=0,stopped=0;
+ for(const p of prospects||[]){
+  if(!p.email||STOP.includes(String(p.status||'').toLowerCase()))continue;
+  const reply=(inbound||[]).find(m=>String(m.from_address||'').toLowerCase().includes(String(p.email).toLowerCase())&&(!p.last_contact_at||new Date(m.received_at)>new Date(p.last_contact_at)));
+  if(reply){await sb.from('prospects').update({status:'Répondu',next_follow_up:null}).eq('id',p.id);stopped++;continue}
+  const last=p.last_contact_at?new Date(p.last_contact_at):null;if(last&&Date.now()-last.getTime()<7*DAY)continue;
+  const first=!last;
+  const attachments=[];
+  if(first&&process.env.PROSPECT_BROCHURE_URL)attachments.push({filename:'Plaquette-Cuisine-Pour-Tous-Chambery.pdf',path:process.env.PROSPECT_BROCHURE_URL});
+  await tr.sendMail({from:'"Cuisine Pour Tous" <contact@cuisinepourtouschambery.fr>',replyTo:'contact@cuisinepourtouschambery.fr',to:p.email,subject:first?'Partenariat – Cuisine Pour Tous Chambéry':'Re: Partenariat – Cuisine Pour Tous Chambéry',text:body(p.contact_name||'',!first),attachments});
+  const now=new Date(),next=new Date(now.getTime()+7*DAY);await sb.from('prospects').update({status:first?'Contacté':'Relancé',last_contact_at:now.toISOString(),next_follow_up:next.toISOString().slice(0,10)}).eq('id',p.id);sent++;if(!first)followups++;
+ }
+ return Response.json({ok:true,sent,followups,stopped});
+}catch(e){console.error(e);return Response.json({error:e.message||'Erreur prospection'},{status:500})}}
