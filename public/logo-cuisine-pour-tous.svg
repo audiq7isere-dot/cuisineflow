@@ -1,5 +1,5 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 594 217">
-<rect width="594" height="217" fill="#fff"/>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 720 217">
+<rect width="720" height="217" fill="#fff"/>
 <g>
 <polygon points="39,14 70,14 90,35 62,35" fill="#913812"/>
 <polygon points="62,35 90,35 90,125 62,105" fill="#ff6b0b"/>
@@ -10,6 +10,6 @@
 <polygon points="62,139 89,158 89,194 62,176" fill="#cfd0d2"/>
 </g>
 <text x="99" y="114" font-family="Arial,Helvetica,sans-serif" font-size="67" font-style="italic" fill="#050505">Cuisine Pour Tous</text>
-<path d="M94 130H580L575 153H94Z" fill="#050505"/>
+<path d="M94 130H704L699 153H94Z" fill="#050505"/>
 <text x="111" y="195" font-family="Georgia,serif" font-size="39" font-style="italic" fill="#c95d2e">La fin des cuisines chères!</text>
 </svg>
