@@ -1,12 +1,15 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 360">
-<rect width="1200" height="360" fill="white"/>
-<g transform="translate(35 42)">
-<path d="M75 5l60 0 42 42-57 0z" fill="#9d3b17"/><path d="M120 47h57v145l-57-43z" fill="#ff6d0a"/>
-<path d="M55 72l48-37v112l-48-36z" fill="#cfd0d2"/><path d="M5 130l52 0 47 39-52 0z" fill="#111"/>
-<path d="M5 130l47 39v83L5 216z" fill="#cfd0d2"/><path d="M52 169l68-20 0 58-68 45z" fill="#ff6d0a"/>
-<path d="M120 207l58 43v76l-58-36z" fill="#cfd0d2"/>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 594 217">
+<rect width="594" height="217" fill="#fff"/>
+<g>
+<polygon points="39,14 70,14 90,35 62,35" fill="#913812"/>
+<polygon points="62,35 90,35 90,125 62,105" fill="#ff6b0b"/>
+<polygon points="35,56 61,37 61,104 35,84" fill="#cfd0d2"/>
+<polygon points="7,79 37,79 62,99 32,99" fill="#111"/>
+<polygon points="7,79 32,99 32,134 7,115" fill="#cfd0d2"/>
+<polygon points="32,99 62,105 62,139 32,158" fill="#ff6b0b"/>
+<polygon points="62,139 89,158 89,194 62,176" fill="#cfd0d2"/>
 </g>
-<text x="220" y="190" font-family="Arial,Helvetica,sans-serif" font-size="112" font-style="italic" fill="#050505">Cuisine Pour Tous</text>
-<path d="M210 215h930l-10 42H210z" fill="#050505"/>
-<text x="235" y="320" font-family="Georgia,serif" font-size="62" font-style="italic" fill="#e36f3e">La fin des cuisines chères!</text>
+<text x="99" y="114" font-family="Arial,Helvetica,sans-serif" font-size="67" font-style="italic" fill="#050505">Cuisine Pour Tous</text>
+<path d="M94 130H580L575 153H94Z" fill="#050505"/>
+<text x="111" y="195" font-family="Georgia,serif" font-size="39" font-style="italic" fill="#c95d2e">La fin des cuisines chères!</text>
 </svg>
