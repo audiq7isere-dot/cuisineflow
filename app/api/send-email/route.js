@@ -2,7 +2,7 @@ import nodemailer from 'nodemailer';
 
 export async function POST(request){
   try{
-    const {to,subject,text}=await request.json();
+    const {to,subject,text,attachments=[]}=await request.json();
     if(!to||!subject||!text)return Response.json({error:'Destinataire, objet et message requis'},{status:400});
     const transporter=nodemailer.createTransport({
       host:process.env.SMTP_HOST||'mail.cuisinepourtouschambery.fr',
@@ -12,7 +12,7 @@ export async function POST(request){
     });
     await transporter.sendMail({
       from:'"Cuisine Pour Tous" <contact@cuisinepourtouschambery.fr>',
-      replyTo:'contact@cuisinepourtouschambery.fr',to,subject,text
+      replyTo:'contact@cuisinepourtouschambery.fr',to,subject,text,attachments:(attachments||[]).map(a=>({filename:a.filename,path:a.url}))
     });
     return Response.json({ok:true});
   }catch(error){
