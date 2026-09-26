@@ -67,7 +67,11 @@ export async function POST(request){
   const excluded=x=>/^(?:Nr\.?\s*(?:Server|Client)|Date|REf\.?\s*Client|Tel\.?|e-?mail|CLIENT\s*:)/i.test(x)||/@/.test(x)||/\b\d{5}\b/.test(x)||/(?:\+33|0)[1-9](?:[ .-]?\d{2}){4}/.test(x)||/^\d+$/.test(x);
   const c=raw.filter(x=>!excluded(x)),address=c.find(x=>/\b(?:rue|avenue|av\.?|all[ée]e|chemin|route|boulevard|bd\.?|impasse|place|lotissement|résidence|residence)\b/i.test(x))||'',ai=address?c.indexOf(address):-1,name=clean((ai>0?c[ai-1]:c.find(x=>/^[A-Za-zÀ-ÿ][A-Za-zÀ-ÿ'’ .-]{1,60}$/.test(x))||'').replace(/^CLIENT\s*:\s*/i,''));
   let items=parseItems(layoutText);if(!items.length)items=parseItems(text);
+  // Détecte la TVA réellement imprimée sur le devis 3CAD (10 % ou 20 %) au lieu de forcer 20 %.
+  const vatMatches=[...text.matchAll(/(?:TVA|TAXE)(?:\s+À|\s+A)?\s*(?:TAUX)?\s*[:=]?\s*(10|20)(?:[.,]0+)?\s*%/gi)].map(m=>Number(m[1]));
+  const vatRate=vatMatches.includes(10)?10:vatMatches.includes(20)?20:(text.match(/\b10(?:[.,]0+)?\s*%/)?10:20);
+  items=items.map(it=>({...it,vat:vatRate}));
   const totalTtc=text.match(/TOTAL\s+TVA\s+INCLUE\s*€?\.?\s*([\d\s.,]+)/i)?.[1]||'',discount=text.match(/REMISE\s+GENERALE\s+([\d.,]+)\s*%/i)?.[1]||'',clientNumber=text.match(/Nr\.?\s*Client\s*:\s*(\d+)/i)?.[1]||'',quoteDate=text.match(/Date\s*:\s*(\d{2}\/\d{2}\/\d{4})/i)?.[1]||'';
-  return Response.json({client_name:name,client_address:address,client_postal_code:lm?.[1]||'',client_city:clean(lm?.[2]||''),client_phone:phone,client_email:email,total:totalTtc?money(totalTtc):'',discount:discount?money(discount):'0',client_number:clientNumber,quote_date:quoteDate,items,item_count:items.length});
+  return Response.json({client_name:name,client_address:address,client_postal_code:lm?.[1]||'',client_city:clean(lm?.[2]||''),client_phone:phone,client_email:email,total:totalTtc?money(totalTtc):'',discount:discount?money(discount):'0',client_number:clientNumber,quote_date:quoteDate,vat_rate:vatRate,items,item_count:items.length});
  }catch(error){console.error('3CAD parse error',error);return Response.json({error:'Impossible de lire ce PDF 3CAD.'},{status:500})}
 }
