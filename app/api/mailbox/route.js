@@ -24,6 +24,6 @@ export async function GET(request){
  }
  return Response.json({messages:messages.reverse()},{headers:{'Cache-Control':'no-store'}});
  }finally{lock.release()}
- }catch{return Response.json({error:'Connexion IMAP impossible. Vérifiez le serveur et les identifiants.'},{status:502})}
+ }catch(e){const code=String(e.code||'UNKNOWN');const reason=e.authenticationFailed?'AUTH':(['ENOTFOUND','EAI_AGAIN','ECONNREFUSED','ETIMEDOUT','ECONNRESET','ETIMEOUT','CERT_HAS_EXPIRED','ERR_TLS_CERT_ALTNAME_INVALID','SELF_SIGNED_CERT_IN_CHAIN'].includes(code)?code:'UNKNOWN');console.warn('IMAP diagnostic',reason);return Response.json({error:'Connexion IMAP impossible. Diagnostic : '+reason},{status:502})}
  finally{client.close()}
 }
