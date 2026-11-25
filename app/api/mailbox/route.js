@@ -17,10 +17,16 @@ export async function GET(request){
  }
  const uid=new URL(request.url).searchParams.get('uid');
  if(uid&&/^\d+$/.test(uid)){
+ if(new URL(request.url).searchParams.get('validity')!==String(client.mailbox.uidValidity))return Response.json({error:'Synchronisez la boîte.'},{status:409});
+ const meta=await client.fetchOne(uid,{size:true},{uid:true});
+ if(!meta||meta.size>20*1024*1024)return Response.json({error:'Message absent ou supérieur à 20 Mo.'},{status:413});
  const m=await client.fetchOne(uid,{source:true,size:true},{uid:true});
  if(!m?.source)return Response.json({error:'Message introuvable'},{status:404});
  const parsed=await simpleParser(m.source);
- return Response.json({text_body:parsed.text||'',attachments:parsed.attachments.map(a=>({filename:a.filename,size:a.size}))},{headers:{'Cache-Control':'no-store'}});
+ const part=new URL(request.url).searchParams.get('part');
+ if(part!==null){const a=/^\d+$/.test(part)?parsed.attachments[Number(part)]:null;if(!a)return Response.json({error:'Pièce jointe introuvable'},{status:404});return new Response(a.content,{headers:{'Content-Type':'application/octet-stream','Content-Disposition':"attachment; filename*=UTF-8''"+encodeURIComponent(a.filename||'document'),'Cache-Control':'no-store','X-Content-Type-Options':'nosniff'}})}
+ 
+ return Response.json({text_body:parsed.text||'',html_body:parsed.html||'',attachments:parsed.attachments.map((a,index)=>({index,filename:a.filename||'document',size:a.size,cid:a.cid,type:a.contentType}))},{headers:{'Cache-Control':'no-store'}});
  }
  return Response.json({messages:messages.reverse()},{headers:{'Cache-Control':'no-store'}});
  }finally{lock.release()}
